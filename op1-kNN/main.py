@@ -10,9 +10,6 @@ import numpy as np
 #     DR: total time of precipitation (in 0.1 hours);
 #     RH: total sum of precipitation that day (in 0.1 mm); -1 for less than 0.05mm.
 
-def compute_distance():
-    return
-
 def main():
     data = np.genfromtxt('dataset1.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
 
