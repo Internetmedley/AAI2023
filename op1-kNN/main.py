@@ -46,35 +46,38 @@ def main():
         else: # from 01-12 to end of year
             v_labels.append('winter')
 
+
     # The calculation of the Euclidean distance is a straight-forward application of the law of Pythagoras:
-    # the distance d between points (a1, . . . , an) and (b1, . . . , bn) is d2 = (a1 − b1)2 + . . . + (an − bn)2.
-
-    v_distances = []
-    v_distance_labels = []
-    for v in range(len(validata)):
-
-        #calculate distance between every point
-        distance = 0
-        for d in range(len(data)):
-            for i in range(0, 7):
-                distance += np.square(validata[v][i] - data[d][i])
-                
-            print(np.sqrt(distance))
+    # the distance d between points (a1, . . . , an) and (b1, . . . , bn) is d2 = (a1 − b1)2 + . . . + (an − bn)2.    
+    allDistancesAndLabels = []         #verzameling van alle distances en labels
+    for a in range(len(validata)):      
+        distances = []
+        distancesAndLabelsDict = { "winter" : [], "lente" : [], "zomer" : [], "herfst" : [] }      #deze gedeclareerd omdat het dan makkelijk appenden is
+        for b in range(len(data)):          
             distance = 0
-        
+            for i in range(len(data[b])):       
+                distance += np.square(validata[a][i] - data[b][i])   
+
+            #hier moet de opgeslagen distance worden verwerkt door het op te slaan in een lijst 
+            distances.append(np.sqrt(distance))                                 #sqrt want pythagoras
+            distancesAndLabelsDict[d_labels[b]] = distances                     #pak het label van het andere punt van de vergelijking en zet de distances erbij
+
+        #zet de dicts in een lijst om zo een lijst van 100 elementen te krijgen met dicts mey key=seizoen en value=distance
+        #als de distance als key gebruikt zou worden kunnen er niet twee dezelfde distances zijn, want een dict heeft unique keys
+        allDistancesAndLabels.append(distancesAndLabelsDict)
+    #print(len(allDistancesAndLabels[50]["winter"]))
 
 
+    #Select k closest instances
+    k = 5
 
-            # v_distance_labels.append(distance)
-            # distance = 0
-        
-        # for d_point in data:
-        #     distance = np.sqrt(distance)
-        #     v_point[0] - d_point[0]
-        #     distance = 
-        # print(v_point)
-        #distance = 
-
+    #First sort the list of all distances and labels
+    for i in allDistancesAndLabels:
+        for key, value in i.items():
+            sorted = np.sort(value)
+            i[key] = sorted
+    
+    print(allDistancesAndLabels[50]["zomer"])
 
 
 
