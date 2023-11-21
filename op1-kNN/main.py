@@ -10,20 +10,37 @@ import numpy as np
 #     DR: total time of precipitation (in 0.1 hours);
 #     RH: total sum of precipitation that day (in 0.1 mm); -1 for less than 0.05mm.
 
-def find_best_K(distances, validata, t_data, v_labels, d_labels):
+def find_best_K(distances, v_data, v_labels, d_labels, labels):
     best_k = 0
     best_score = 0
-    #go through 100 k values
-    for k in range(1, 100):
-        n_errors = 0
-        for i in distances:
-            lowest_distances = {}
-            for key, value in i.items():
-                #value[:k]                       #get the lowest distance neighbours
-                for v in value[:k]:
-                    pass
-
-    
+    for k in range(1, int(len(d_labels)/3)):                                            #it is usually not a good idea to go higher than 1/3 of train data for k
+        k_closest = []                                                                  #reset closest neighbours
+        n_correct = 0
+        for d in range(len(distances)):
+            k_closest = np.array([ v[1] for v in distances[d][:k] ])                       #get the k closest neighbours for this distance
+            frequencies = []
+            while(True):
+                for l in labels:
+                    frequencies.append(tuple((np.count_nonzero(k_closest == l), l)))
+                frequencies.sort(key=lambda x : x[0], reverse=True)             #sort the elements descending
+                print(frequencies)
+                
+                #print(frequencies[0][0] == frequencies[1][0])
+                if(frequencies[0][0] == frequencies[1][0]):                     #if true, there is a conflict meaning the highest frequent neighbours are the same
+                    k_closest = k_closest[:-1]                                  #leave out the last neighbour if there is a conflict and then repeat the process
+                    frequencies = []                                            #because we're sorting beforehand, comparing the first two elements always works
+                    continue
+                else:
+                    break
+            print(v_labels[d])
+            #print(frequencies[0][0], frequencies[0][1]) 
+            print(frequencies[0][1] == v_labels[d], "d: ", d, "k :", k) 
+            if(frequencies[0][1] == v_labels[d]):
+                n_correct += 1 
+        if(n_correct > best_score):
+            print(n_correct)
+            best_k = k
+    print("beste k:", best_k)
 
 
 
@@ -63,45 +80,24 @@ def main():
         else: # from 01-12 to end of year
             v_labels.append('winter')
 
-    labels = { "winter" : [], "lente" : [], "zomer" : [], "herfst" : [] }
+
     # The calculation of the Euclidean distance is a straight-forward application of the law of Pythagoras:
     # the distance d between points (a1, . . . , an) and (b1, . . . , bn) is d2 = (a1 − b1)2 + . . . + (an − bn)2.    
     allDistancesAndLabels = []         #verzameling van alle distances en labels
     for a in range(len(validata)):      
         distances = []
-        #distancesAndLabelsDict = labels      #deze gedeclareerd omdat het dan makkelijk appenden is
         for b in range(len(data)):          
             distance = 0
             for i in range(len(data[b])):       
                 distance += np.square(validata[a][i] - data[b][i])   
 
-            #hier moet de opgeslagen distance worden verwerkt door het op te slaan in een lijst 
             distances.append(tuple([np.sqrt(distance), d_labels[b]]))                               #sqrt want pythagoras
-            #distancesAndLabelsDict[d_labels[b]] = distances                     #pak het label van het andere punt van de vergelijking en zet de distances erbij
 
-        #zet de dicts in een lijst om zo een lijst van 100 elementen te krijgen met dicts mey key=seizoen en value=distance
-        #als de distance als key gebruikt zou worden kunnen er niet twee dezelfde distances zijn, want een dict heeft unique keys
         distances.sort(key=lambda x : x[0])                 #sort based on first element, which is 
         allDistancesAndLabels.append(distances)
 
 
-    #Select k closest instances
-    k = 5
-
-    #allDistancesAndLabels = sorted(allDistancesAndLabels,key=lambda x : x[0])
-    #allDistancesAndLabels.sort(key=lambda x : x[:][0])
-
-    print(allDistancesAndLabels[2])
-
-    
-    #print(allDistancesAndLabels[50]["zomer"])
-
-    #find_best_K(allDistancesAndLabels, labels)
-
-
-
-
-
+    find_best_K(allDistancesAndLabels, data, v_labels, d_labels, labels=["winter", "lente", "zomer", "herfst"])
 
 
     # Algorithm 3.1 — k-Nearest Neighbours.
