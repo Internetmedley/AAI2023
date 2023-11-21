@@ -10,6 +10,26 @@ import numpy as np
 #     DR: total time of precipitation (in 0.1 hours);
 #     RH: total sum of precipitation that day (in 0.1 mm); -1 for less than 0.05mm.
 
+def find_best_K(distances, validata, t_data, v_labels, d_labels):
+    best_k = 0
+    best_score = 0
+    #go through 100 k values
+    for k in range(1, 100):
+        n_errors = 0
+        for i in distances:
+            lowest_distances = {}
+            for key, value in i.items():
+                #value[:k]                       #get the lowest distance neighbours
+                for v in value[:k]:
+                    pass
+
+    
+
+
+
+    return k
+
+
 def main():
     data = np.genfromtxt('dataset1.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
 
@@ -43,38 +63,43 @@ def main():
         else: # from 01-12 to end of year
             v_labels.append('winter')
 
-
+    labels = { "winter" : [], "lente" : [], "zomer" : [], "herfst" : [] }
     # The calculation of the Euclidean distance is a straight-forward application of the law of Pythagoras:
     # the distance d between points (a1, . . . , an) and (b1, . . . , bn) is d2 = (a1 − b1)2 + . . . + (an − bn)2.    
     allDistancesAndLabels = []         #verzameling van alle distances en labels
     for a in range(len(validata)):      
         distances = []
-        distancesAndLabelsDict = { "winter" : [], "lente" : [], "zomer" : [], "herfst" : [] }      #deze gedeclareerd omdat het dan makkelijk appenden is
+        #distancesAndLabelsDict = labels      #deze gedeclareerd omdat het dan makkelijk appenden is
         for b in range(len(data)):          
             distance = 0
             for i in range(len(data[b])):       
                 distance += np.square(validata[a][i] - data[b][i])   
 
             #hier moet de opgeslagen distance worden verwerkt door het op te slaan in een lijst 
-            distances.append(np.sqrt(distance))                                 #sqrt want pythagoras
-            distancesAndLabelsDict[d_labels[b]] = distances                     #pak het label van het andere punt van de vergelijking en zet de distances erbij
+            distances.append(tuple([np.sqrt(distance), d_labels[b]]))                               #sqrt want pythagoras
+            #distancesAndLabelsDict[d_labels[b]] = distances                     #pak het label van het andere punt van de vergelijking en zet de distances erbij
 
         #zet de dicts in een lijst om zo een lijst van 100 elementen te krijgen met dicts mey key=seizoen en value=distance
         #als de distance als key gebruikt zou worden kunnen er niet twee dezelfde distances zijn, want een dict heeft unique keys
-        allDistancesAndLabels.append(distancesAndLabelsDict)
-    #print(len(allDistancesAndLabels[50]["winter"]))
+        distances.sort(key=lambda x : x[0])                 #sort based on first element, which is 
+        allDistancesAndLabels.append(distances)
 
 
     #Select k closest instances
     k = 5
 
-    #First sort the list of all distances and labels
-    for i in allDistancesAndLabels:
-        for key, value in i.items():
-            sorted = np.sort(value)
-            i[key] = sorted
+    #allDistancesAndLabels = sorted(allDistancesAndLabels,key=lambda x : x[0])
+    #allDistancesAndLabels.sort(key=lambda x : x[:][0])
+
+    print(allDistancesAndLabels[2])
+
     
-    print(allDistancesAndLabels[50]["zomer"])
+    #print(allDistancesAndLabels[50]["zomer"])
+
+    #find_best_K(allDistancesAndLabels, labels)
+
+
+
 
 
 
