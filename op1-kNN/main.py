@@ -54,35 +54,35 @@ def find_best_K(distances, v_labels, data, labels):
     print(f"\nBest k value: {best_k} with mean cross validation score = {best_score}")
     return k
 
-def predict(testData, trainData, k, labels):
+def predict(testData, data, k, d_labels, labels):
     most_common_label = ''
     distances = []
     for b in range(len(data)):          
         distance = 0
         for i in range(len(data[b])):       
-            distance += np.square(testData[a][i] - trainData[b][i])   
+            distance += np.square(testData[i] - data[b][i])   
 
         distances.append(tuple([np.sqrt(distance), d_labels[b]]))                               #sqrt want pythagoras
 
     distances.sort(key=lambda x : x[0])                 #sort based on first element, which is 
     
-    for d in range(len(distances)):
-            k_closest = np.array([ v[1] for v in distances[d][:k] ])                       #get the k closest neighbours for this distance
-            frequencies = []
-            while(True):
-                for l in labels:
-                    frequencies.append(tuple((np.count_nonzero(k_closest == l), l)))
-                frequencies.sort(key=lambda x : x[0], reverse=True)             #sort the elements descending
+    
+    k_closest = np.array([ v[1] for v in distances[:k] ])                       #get the k closest neighbours for this distance
+    frequencies = []
+    while(True):
+        for l in labels:
+            frequencies.append(tuple((np.count_nonzero(k_closest == l), l)))
+        frequencies.sort(key=lambda x : x[0], reverse=True)             #sort the elements descending
 
-                if(frequencies[0][0] == frequencies[1][0]):                     #if true, there is a conflict meaning the highest frequent neighbours are the same
-                    k_closest = k_closest[:-1]                                  #leave out the last neighbour if there is a conflict and then repeat the process
-                    frequencies = []                                            #because we're sorting beforehand, comparing the first two elements always works  
-                    continue
-                else:
-                    break
-
-            most_common_label = frequencies[0][1]
-            print(f"Precicted label: {most_common_label}")
+        if(frequencies[0][0] == frequencies[1][0]):                     #if true, there is a conflict meaning the highest frequent neighbours are the same
+            k_closest = k_closest[:-1]                                  #leave out the last neighbour if there is a conflict and then repeat the process
+            frequencies = []                                            #because we're sorting beforehand, comparing the first two elements always works  
+            continue
+        else:
+            break
+    
+    most_common_label = frequencies[0][1]
+    print(f"Precicted label: {most_common_label}")
     return most_common_label
 
 def main():
@@ -140,9 +140,9 @@ def main():
     best_k = find_best_K(allDistancesAndLabels, v_labels, data, labels)
     print(best_k)
 
-    #days = np.genfromtxt('days.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
+    days = np.genfromtxt('days.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
 
-    [ predict(day, data, best_k, labels) for day in days ]
+    [ predict(day, data, best_k, d_labels, labels) for day in days ]
 
 if(__name__ == '__main__'):
     main() 
