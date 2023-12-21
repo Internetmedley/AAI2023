@@ -1,5 +1,9 @@
 import numpy as np
 
+class Neuron:
+    def __init__(self, n_inputs):
+        self.weight = 0.01 * np.random.randn()
+
 class Layer_Dense:
     def __init__(self, n_inputs, n_neurons):
         self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
@@ -47,6 +51,13 @@ class Activation_Softmax:
             jacobian_matrix = np.diagflat(single_output) - np.dot(single_output, single_output.T)
 
             self.dinputs[index] = np.dot(jacobian_matrix, single_dvalues)
+
+class Activation_Sigmoid:
+    def forward(self, inputs):
+        self.inputs = inputs
+
+
+        self.output = 1 / (1 + np.exp(-inputs)) 
 
 
 
