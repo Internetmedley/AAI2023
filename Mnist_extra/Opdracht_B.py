@@ -83,7 +83,7 @@ Probeer in dat geval te beargumenteren waarom die configuratie een goede keuze i
 """
 # ik heb hier de spoiler bij gebruikt
 # deze configuratie is een goede keuze, omdat er na elke convolve2d laag de hoogste/beste features gehaald worden en die worden aan de volgnde laag meegegeven
-# 
+# ook haalt het binnen 30 epochs al 97% accuracy, wat erg hoog is 
 def buildMyModel(inputShape):
     model = keras.Sequential(
         [
@@ -110,11 +110,63 @@ bovenstaande model summary bij elke laag met kleine berekeningen
 de Output Shape
 """
 
+#  Layer (type)                Output Shape              Param #   
+# =================================================================
+#  conv2d (Conv2D)             (None, 28, 28, 20)        200       
+#  Shape is in principe de grootte van de input images, namelijk 28 bij 28 pixels, en de 20 staat voor het aantal feuturemaps die gemaakt worden
+#  met de conv2d 
+                                                                 
+#  max_pooling2d (MaxPooling2  (None, 14, 14, 20)        0         
+#  D)      
+#  max pooling haalt de grootste waarde uit een 2*2 kernel over de input, dus dat resulteert bij een 28*28 plaatje tot een output van 14*14
+#                                                        
+                                                                 
+#  conv2d_1 (Conv2D)           (None, 14, 14, 20)        3620    
+#  door de padding wordt de output shape van deze laag niet aangepast, dus die blijft hetzelfde als bij de vorige laag  
+                                                                 
+#  max_pooling2d_1 (MaxPoolin  (None, 7, 7, 20)          0         
+#  g2D)        
+#  zelfde als de vorige pooling layer, de output shape gaat door de helft                                                    
+                                                                 
+#  flatten (Flatten)           (None, 980)               0    
+#  flatten maakt een 1 dimensionele lijst van de input, dus 7 * 7 * 20 = 980     
+                                                                 
+#  dropout (Dropout)           (None, 980)               0  
+#  dropout verandert niks aan de shape, dus die blijft gelijk       
+                                                                 
+#  dense (Dense)               (None, 10)                9810
+#  de output heeft 10 klassen, namelijk 0 1 2 3 4 5 6 7 8 9
+
 """
 Opdracht B3: 
     
 Verklaar nu bij elke laag met kleine berekeningen het aantal parameters.
 """
+
+#  Layer (type)                Output Shape              Param #   
+# =================================================================
+#  conv2d (Conv2D)             (None, 28, 28, 20)        200       
+#  Parameters zijn input(1) * kernel dimensies(3, 3) * nr_featuremaps(20) + biases(20) = 200
+                                                                 
+#  max_pooling2d (MaxPooling2  (None, 14, 14, 20)        0         
+#  D) 
+#  parameters zijn 0 want het heeft geen parameters nodig                                                             
+                                                                 
+#  conv2d_1 (Conv2D)           (None, 14, 14, 20)        3620      
+#  voor de # parameters is het nu input(20) * kernel dimensies(3, 3)  * nr_featuremaps(20) + biases = 3620
+                                                                 
+#  max_pooling2d_1 (MaxPoolin  (None, 7, 7, 20)          0         
+#  g2D)
+#  weer 0 params omdat het geen parameters nodig heeft                                                            
+                                                                 
+#  flatten (Flatten)           (None, 980)               0       
+#  weer 0 params omdat het geen parameters nodig heeft  
+                                                                 
+#  dropout (Dropout)           (None, 980)               0     
+#  weer 0 params omdat het geen parameters nodig heeft    
+                                                                 
+#  dense (Dense)               (None, 10)                9810
+# vermenigvuldig het aantal klassen met de output van de vorige laag en tel de biases op: 10 * 980 + 10 = 9810
 
 """
 # Train the model
