@@ -67,19 +67,21 @@ def evaluate(y_predictions, y_labels):
 
 def find_best_K_val(y_train, y_labels, X_train, x_labels):
     """
-    Returns the class of the most common neighbour from a list of tuples with distances and labels.
+    Returns the best value for K by iterating through a number of them equal to 1/3 of train size and comparing their scores.
 
             Parameters:
-                    distancesAndLabels (list(tuple)):   A numpy 2d-array
-                    k (int):                            An integer
+                    y_train (2d-array):     A numpy 2d-array
+                    y_labels (np.array):    A numpy array
+                    X_train (2d-array):     A numpy 2d-array
+                    x_labels (np.array):    A numpy array
 
             Returns:
-                    most_common_class (str):    String containing the class of the most frequent neighbour. 
+                    best_k (int):    Integer containing the best calculated value for K.
     """ 
     best_k = 0
     best_score = 0
     epochs = int(len(X_train)/3)
-    for k in range(1, int(len(X_train)/3)):                                                 #X_train / 3 so it will evaluate k values for 1 ... 121 to see which yieds best results
+    for k in range(1, epochs):                                                 #X_train / 3 so it will evaluate k values for 1 ... 121 to see which yieds best results
         predictions = np.array([ predict(k, d, X_train, x_labels) for d in y_train])
         accuracy = evaluate(predictions, y_labels=y_labels)
         print(f"Training... ({k}/{epochs}) - k:{k}, accuracy: {accuracy}")
