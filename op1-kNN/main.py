@@ -56,11 +56,17 @@ def find_most_common_neighbour_K(distancesAndLabels, k):
 
 
 def predict(k, y_train, X_train, x_labels):
+    """
+    Returns the prediction for the most common class from datapoints X_train neighbouring y_train given a K value for no. of neighbours.
+    """
     distances = calculate_distances(y_train, X_train, x_labels)
-    most_common_label = find_most_common_neighbour_K(distances, k)
-    return most_common_label
+    most_common_class = find_most_common_neighbour_K(distances, k)
+    return most_common_class
 
 def evaluate(y_predictions, y_labels):
+    """
+    Returns an accuracy score given a list of predictions and labels.
+    """
     matches = np.count_nonzero(y_labels == y_predictions) 
     accuracy = float(matches / len(y_labels)) * 100
     return accuracy
@@ -80,11 +86,11 @@ def find_best_K_val(y_train, y_labels, X_train, x_labels):
     """ 
     best_k = 0
     best_score = 0
-    epochs = int(len(X_train)/3)
-    for k in range(1, epochs):                                                 #X_train / 3 so it will evaluate k values for 1 ... 121 to see which yieds best results
+    epochs = int(len(X_train)/3)                                                #X_train / 3 so it will evaluate k 1 through 121 to see which is best
+    for k in range(1, epochs):                                                  
         predictions = np.array([ predict(k, d, X_train, x_labels) for d in y_train])
         accuracy = evaluate(predictions, y_labels=y_labels)
-        print(f"Training... ({k}/{epochs}) - k:{k}, accuracy: {accuracy}")
+        print(f"Training... ({k}/{epochs-1}) - k:{k}, accuracy: {accuracy}")
         if( accuracy > best_score ):
             best_score = accuracy
             best_k = k
@@ -126,7 +132,8 @@ def main():
         else: # from 01-12 to end of year
             v_labels.append('winter')
 
-    k = find_best_K_val(v_data, v_labels, d_data, d_labels)
+    k = find_best_K_val(v_data, v_labels, d_data, d_labels)         #this is essentially fitting/training, finding the best no. of neighbours to look at
+                                                                    #given this dataset this will result to: K = 58
 
     days = np.genfromtxt('days.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
     predictions = np.array([ predict(k, d, d_data, d_labels) for d in days])
