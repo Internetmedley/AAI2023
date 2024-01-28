@@ -1,25 +1,8 @@
 import numpy as np
 
 
-def calculate_distances(a, b, labels):
-    """
-    Returns a list of tuples containing distance and class corresponding to the Euclidian distances between datapoints A and all neighbouring datapoints B.
-
-            Parameters:
-                    a (2d-array):       A numpy 2d-array
-                    b (2d-array):       Another numpy 2d-array
-                    labels (np.array):  A list of class labels
-
-            Returns:
-                    distances (list(tuple)): List of tuples containing distance and class
-    """
-    distances = []   
-    for i in range(len(b)):
-        distance = 0
-        for j in range(len(b[0])):       
-            distance += np.square(a[j] - b[i][j])   
-        distances.append(tuple([np.sqrt(distance), labels[i]]))                         #sqrt want pythagoras
-    return distances
+def calculate_distances(a, b):
+    return np.sqrt(np.sum(np.square(a - b), axis=1))
 
 def find_most_common_neighbour_K(distancesAndLabels, k): 
     """
@@ -97,7 +80,6 @@ def find_best_K_val(X_distances, y_labels, epochs):
     return best_k
 
 
-
 def main():
     X_train = np.genfromtxt('dataset1.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
 
@@ -130,26 +112,47 @@ def main():
             y_labels.append('herfst')
         else: # from 01-12 to end of year
             y_labels.append('winter')
-
-    print(X_train.min(axis=0))
-    print(X_train.max(axis=0))
-
-    #X_train = np.array([ (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0)) for X in X_train ])
-    #y_train = np.array([ (y - y.min(axis=0)) / (y.max(axis=0) - y.min(axis=0)) for y in y_train ])
     
-    X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))
+    X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))     #normalise data
     y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))
 
-    X_distances = [ calculate_distances(y, X_train, x_labels) for y in y_train]
-    epochs = int(len(X_train)/3)
+    # print(np.amin(X_train, axis=0))
+    # print(np.amax(X_train, axis=0))
 
-    k = find_best_K_val(X_distances, y_labels, epochs)         #this is essentially fitting/training, finding the best no. of neighbours to look at
-                                                                    #given this dataset this will result to: K = 58
+    # print(np.amin(X_train, axis=0))
+    # print(X_train.max(axis=0))
+    # print(X_train.min(axis=0))
+    
+    np.random.seed(0)       #set random seed to 0 so we always get the same results
+    max_k = 8
+    max_iterations = 100
+    for k in range(2, max_k):
+        centroids = np.random.uniform(X_train.min(axis=0), X_train.max(axis=0), size=(k, X_train.shape[1]))
+        print("centroids: ", centroids)
 
-    days = np.genfromtxt('days.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
-    test_distances = [ calculate_distances(d, X_train, x_labels) for d in days]
-    predictions = predict(k, test_distances)
-    print("Voorspellingen: ", predictions)   
+        for _ in range(max_iterations):
+            y = []                          #cluster labels
+            for datapoint in X_train:
+
+                distances = calculate_distances(centroids, datapoint)          #makes 366 lists of distances to all centroids in list of centroids  
+        
+                #print(distances)
+                #print(len(distances))
+                cluster_num = np.argmin(distances)
+                y.append(cluster_num)
+                #print(cluster_num)
+            y = np.array(y)
+
+            for i, c in enumerate(max_k):
+                print(X_train[y == i])
+
+          
+
+        
+            #print(len(distances1))
+            #print(len(distances2))
+
+    
 
 if(__name__ == '__main__'):
     main() 

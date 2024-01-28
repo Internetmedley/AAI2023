@@ -130,23 +130,18 @@ def main():
             y_labels.append('herfst')
         else: # from 01-12 to end of year
             y_labels.append('winter')
-
-    print(X_train.min(axis=0))
-    print(X_train.max(axis=0))
-
-    #X_train = np.array([ (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0)) for X in X_train ])
-    #y_train = np.array([ (y - y.min(axis=0)) / (y.max(axis=0) - y.min(axis=0)) for y in y_train ])
     
     X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))
     y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))
 
     X_distances = [ calculate_distances(y, X_train, x_labels) for y in y_train]
     epochs = int(len(X_train)/3)
-
-    k = find_best_K_val(X_distances, y_labels, epochs)         #this is essentially fitting/training, finding the best no. of neighbours to look at
-                                                                    #given this dataset this will result to: K = 58
+    k = find_best_K_val(X_distances, y_labels, epochs)              #this is essentially fitting/training, finding the best no. of neighbours to look at
+                                                                    #given this dataset this will result to: K = 59 
 
     days = np.genfromtxt('days.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
+    
+    days = (days - days.min(axis=0)) / (days.max(axis=0) - days.min(axis=0))
     test_distances = [ calculate_distances(d, X_train, x_labels) for d in days]
     predictions = predict(k, test_distances)
     print("Voorspellingen: ", predictions)   
