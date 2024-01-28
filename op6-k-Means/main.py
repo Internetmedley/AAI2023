@@ -79,6 +79,41 @@ def find_best_K_val(X_distances, y_labels, epochs):
     print(f"De beste k is: {best_k} met een accuracy van: {best_score}%")
     return best_k
 
+def K_means(k, centroids, max_iterations, X):
+    y = []
+    within_cluster_sum = 0
+    for _ in range(max_iterations):         #number of times to calculate new centroids
+        y = np.array([np.argmin(calculate_distances(centroids, X_data)) for X_data in X])       #calculate distances of each point towards all centroids      
+        #print(y)
+
+        cluster_indices = [np.argwhere(y == i) for i in range(k)]   #list of indices of datapoints grouped in clusters
+        
+        for i, c in enumerate(centroids):
+            cluster_indices = np.argwhere(y == i)
+            
+
+
+
+        #print(cluster_indices)
+
+        new_cluster_centers = []
+        
+
+        for i, indices in enumerate(cluster_indices):
+            if len(indices) == 0:
+                new_cluster_centers.append(centroids[i])
+            else:
+                new_cluster_centers.append(np.mean(X[indices], axis=0)[0])
+                within_cluster_sum += np.sum((cluster_indices - centroids))
+    
+        if np.max(centroids - np.array(new_cluster_centers)) < 0.00000001:  #if maximum distance is less than 0.0001
+            
+            break
+        else:
+            centroids = np.array(new_cluster_centers)
+        #print("calculating route")
+    return y
+
 
 def main():
     X_train = np.genfromtxt('dataset1.csv', delimiter=';', usecols=[1,2,3,4,5,6,7], converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
@@ -115,36 +150,15 @@ def main():
     
     X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))     #normalise data
     y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))
-
-    # print(np.amin(X_train, axis=0))
-    # print(np.amax(X_train, axis=0))
-
-    # print(np.amin(X_train, axis=0))
-    # print(X_train.max(axis=0))
-    # print(X_train.min(axis=0))
     
     np.random.seed(0)       #set random seed to 0 so we always get the same results
     max_k = 8
     max_iterations = 100
     for k in range(2, max_k):
-        centroids = np.random.uniform(X_train.min(axis=0), X_train.max(axis=0), size=(k, X_train.shape[1]))
-        print("centroids: ", centroids)
-
-        for _ in range(max_iterations):
-            y = []                          #cluster labels
-            for datapoint in X_train:
-
-                distances = calculate_distances(centroids, datapoint)          #makes 366 lists of distances to all centroids in list of centroids  
+        centroids = np.random.uniform(X_train.min(axis=0), X_train.max(axis=0), size=(k, X_train.shape[1]))     #make k random cluster centroids
+        labels = K_means(k, centroids, max_iterations, X_train)
+        #print(labels)
         
-                #print(distances)
-                #print(len(distances))
-                cluster_num = np.argmin(distances)
-                y.append(cluster_num)
-                #print(cluster_num)
-            y = np.array(y)
-
-            for i, c in enumerate(max_k):
-                print(X_train[y == i])
 
           
 
