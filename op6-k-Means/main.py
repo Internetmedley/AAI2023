@@ -37,6 +37,7 @@ def predict_cluster_labels(cluster, x_labels):
     for key, value in votes.items():
         if len(Counter(value)) != 0:
             votes[key] = max(Counter(value))                    #tally which label gets the most votes and assign it
+            
 
     for cluster_num in cluster:
         y_pred.append(votes[cluster_num])
@@ -149,7 +150,6 @@ def main():
     plt.title("Scree Plot")
     plt.xlabel("No. of K-clusters")
     plt.ylabel("Intra cluster distance")
-    plt.xticks(range(1, max_k))
     plt.show()
 
     k = 7
