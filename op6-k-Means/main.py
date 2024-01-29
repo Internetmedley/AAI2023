@@ -4,12 +4,29 @@ from collections import Counter
 
 
 def calculate_distances(a, b):
-    return np.sqrt(np.sum(np.square(a - b), axis=1))
+    """
+    Returns a a numpy array containing distance corresponding to the Euclidian distances between datapoints A and all neighbouring datapoints B.
+
+            Parameters:
+                    a (2d-array):       A numpy 2d-array
+                    b (2d-array):       Another numpy 2d-array
+
+            Returns:
+                    distances (np-array): Numpy array containing distance
+    """
+    distances = np.sqrt(np.sum(np.square(a - b), axis=1))
+    return distances
 
 
 def predict_cluster_labels(cluster, x_labels):
     """
-    Returns the prediction for the most common class from datapoints X_train neighbouring y_train given a K value for no. of neighbours.
+    Returns a list with the predicted labels given a cluster array and an array with labels.
+            Parameters:
+                    cluster (2d-array):     A numpy 2d-array
+                    x_labels (2d-array):    Another numpy 2d-array
+
+            Returns:
+                    y_pred (list): List containing predicted labels
     """
     y_pred = []
     
@@ -29,17 +46,34 @@ def predict_cluster_labels(cluster, x_labels):
 def evaluate(y_predictions, y_labels):
     """
     Returns an accuracy score given a list of predictions and labels.
+            Parameters:
+                    y_predictions (np-array):   A numpy array
+                    y_labels (np-array):        Another numpy array
+
+            Returns:
+                    accuracy (float): A float containing accuracy percentage score
     """
     matches = np.count_nonzero(y_labels == y_predictions) 
     accuracy = float(matches / len(y_labels)) * 100
     return accuracy
 
 
-def cluster_K_means(centroids, max_iterations, X):
+def cluster_K_means(centroids, iterations, X):
+    """
+    Returns an array containing the cluster numbers each datapoint is assigned to and the within cluster sum of this cluster. 
+            Parameters:
+                    centroids (2d-np-array):    A 2d-numpy array
+                    iterations (int):       An integer
+                    X (2d-np-array)             A 2d-np-array
+
+            Returns:
+                    y (np-array):                 A numpy array containing assigned cluster numbers for each datapoint in X
+                    within_cluster_sum (float):   A float containing the within cluster sum squared
+    """
     y = []
     within_cluster_sum = 0
-    for _ in range(max_iterations):         #number of times to calculate new centroids
-        within_cluster_sum = 0
+    for _ in range(iterations):         #number of times to calculate new centroids
+        within_cluster_sum = 0.0            #reset the sum so it uses the one for the last iteration each time 
         y = np.array([np.argmin(calculate_distances(centroids, X_data)) for X_data in X])       #calculate distances of each point towards all centroids      
         
         cluster_indices = []
@@ -95,8 +129,8 @@ def main():
         else: # from 01-12 to end of year
             y_labels.append('winter')
     
-    X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))     #normalise data, the algorithm works much better without
-    y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))
+    X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))     #normalise data with min-max,
+    y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))     #the algorithm works better without it
     
     np.random.seed(0)       #set random seed to 0 so we always get the same results
     max_k = 9
