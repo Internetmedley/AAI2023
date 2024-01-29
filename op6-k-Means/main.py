@@ -85,12 +85,12 @@ def cluster_K_means(centroids, iterations, X):
 
         new_cluster_centers = []
         for i, indices in enumerate(cluster_indices):
-            if len(indices) == 0:
+            if len(indices) <= 0:
                 new_cluster_centers.append(centroids[i])
             else:
                 new_cluster_centers.append(np.mean(X[indices], axis=0)[0])
     
-        if np.max(centroids - np.array(new_cluster_centers)) < 0.00000001:  #if maximum distance is less than 0.0001
+        if np.max(centroids - np.array(new_cluster_centers)) < 0.00001:  #if maximum distance is less than 0.0001
             break
         else:
             centroids = np.array(new_cluster_centers)
