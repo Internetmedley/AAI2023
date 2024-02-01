@@ -1,13 +1,30 @@
 import numpy as np
 
 def sigmoid(z):
-    #z = np.clip(z, -50, 50)
+    """
+    Sigmoid activation function to use on the weighted sum of a neuron.
+            Parameters:
+                    z (float):     A float
+    """
     return 1 / (1 + np.exp(-z))
 
 def sigmoid_derivative(z):
+    """
+    Returns the sigmoid derivative of input z.
+            Parameters:
+                    z (float):     A float
+    """
     return sigmoid(z) * (1 - sigmoid(z))
 
 def one_hot_encode(y_labels):
+    """
+    Transforms the list of labels to become one-hot-encoded(https://en.wikipedia.org/wiki/One-hot) so it is easier to evaluate the model.
+            Parameters:
+                    y_labels (iris_targets):     A 2d-list iris_targets
+                    
+            Returns:
+                    output (list[list[int]]):    A 2d-list of integers
+    """
     classes = np.unique(y_labels)                                   #een set van alle mogelijke classes
     output = np.zeros(shape=(len(y_labels), len(classes)))          
     for i in range(len(y_labels)):
@@ -17,75 +34,74 @@ def one_hot_encode(y_labels):
 
 class Neuron:
     def __init__(self, n_weights, b=0):
-        #self.weights = [ w for w in np.random.randn(n_weights) ]
         self.weights = [ np.random.random_sample() for _ in range(n_weights) ]      #makes a random value between 0.0 and 1.0
         self.bias = b
+        self.input = 0
+        self.output = 0
         self.delta = 0
+
+    def activate(self, inputs):
+        """
+        Activates the neuron given input to calculate the weighted sum of the input, addinf the bias.
+                Parameters:
+                        inputs (list[list[float]]):     A 2d-list of floats
+        """
+        self.inputs = inputs
+
+        weighted_sum = self.bias
+        for i in range(len(inputs)):
+            weighted_sum += self.weights[i] * inputs[i]
+        self.output = sigmoid(weighted_sum)
 
 
 class Layer_Dense:
     def __init__(self, n_neurons, n_weights):
         self.neurons = [ Neuron(n_weights) for _ in range(n_neurons) ]
 
+
     def forward(self, inputs):
-        self.inputs = inputs
-        #self.weighted = []
+        """
+        Calls the activation function for each neuron in this layer given an input.
+            Parameters:
+                    inputs (list[list[float]]):     A 2d-list of floats
+        """
         self.output = []
-        
-        for i in range(len(self.neurons)):
-            sum_values = 0.0
-            for j in range(len(inputs)):
-                sum_values += inputs[j] * self.neurons[i].weights[j]
-                #print("sum_values: ", sum_values)
-            self.output.append(sigmoid(sum_values + self.neurons[i].bias))
-        print("self.output: ", self.output)
+        self.inputs = inputs
+        for neuron in self.neurons:
+            neuron.activate(inputs)
+            self.output.append(neuron.output)
 
-
-    def update_weights(self, lr):                #seems done
-        for i in range(len(self.neurons)):
-            #print("before: ", self.neurons[i].weights)
-            for j in range(len(self.neurons[i].weights)):
-                self.neurons[i].weights[j] += (lr * self.neurons[i].delta * self.inputs[j])
-            #print("after: ", self.neurons[i].weights)
+    def update_weights_and_biases(self, lr):
+        """
+        Updates the weights and biases for each neuron in this layer given a learning rate.
+            Parameters:
+                    lr (float):     A float
+        """                
+        for neuron in self.neurons:
+            for i in range(len(neuron.weights)):
+                neuron.weights[i] += lr * neuron.delta * self.inputs[i]         #update weight
+            neuron.bias += lr * neuron.delta                                    #update bias                  
     
-    def update_biases(self, lr):                        #seems done?
-        for i in range(len(self.neurons)):     
-            #print("neuron bias before: ", self.neurons[i].bias)
-            #print("neuron delta before: ", self.neurons[i].delta)
-            
-            self.neurons[i].bias += (lr * self.neurons[i].delta)
-            #print("neuron bias after:  ", self.neurons[i].bias)
-            #print("neuron delta after: ", self.neurons[i].delta)
-
-        
-class Hidden_Layer_Dense(Layer_Dense):              #>>>> now seems to be done
-    def backward(self, previous_layer : Layer_Dense):
-        for i in range(len(self.neurons)):
-            delta_sum = 0.0
-            for j in range(len(previous_layer.neurons)):
-                delta_sum += self.output[j] * previous_layer.neurons[j].delta
-            self.neurons[i].delta = sigmoid_derivative(self.output[i] * delta_sum)
-        #print("hidden layer back")
-
-
-class Output_Layer_Dense(Layer_Dense):              #this one seems good
+class Output_Layer_Dense(Layer_Dense):              
     def backward(self, y_true):
-        error = (y_true - self.output)
-        print("error: ", error)
-        for i in range(len(self.neurons)):
-            self.neurons[i].delta = sigmoid_derivative(self.output[i]) * error[i] 
-            print("delta in backward:", self.neurons[i].delta)    
-        #print("output layer back")
+        """
+        Backward propagation on each neuron in this output layer given expected label to calculate their new deltas.
+            Parameters:
+                    y_true (list[int]):     A list of integers
+        """
+        error = y_true - self.output
+        for i, neuron in enumerate(self.neurons):
+            neuron.delta = sigmoid_derivative(neuron.input) * error[i]      #calculate new delta
 
-
-
-
-
-
-#--------------------------------------
-# unused
-# class Loss_MeanSquaredError:              
-#     def calculate(self, y_predict, y_true):
-#         N = len(y_true)
-#         mse = np.sum(np.square(y_true - y_predict) / N)               
-#         return mse
+class Hidden_Layer_Dense(Layer_Dense):              
+    def backward(self, previous_layer : Layer_Dense):
+        """
+        Backward propagation on each neuron in this layer to recalculate their deltas given a layer that backwarded before this one.
+            Parameters:
+                    previous_layer (Layer_Dense):     A Layer_Dense superclass object
+        """
+        for i, neuron in enumerate(self.neurons):
+            delta_weight_sum = 0
+            for prev_layer_neuron in previous_layer.neurons:
+                delta_weight_sum += prev_layer_neuron.delta * prev_layer_neuron.weights[i]
+            neuron.delta = sigmoid_derivative(neuron.output) * delta_weight_sum             #calculate new delta
