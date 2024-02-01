@@ -1,25 +1,24 @@
 from ucimlrepo import fetch_ucirepo 
 import numpy as np
+from model import *
 import NN as N
 
-np.random.seed(0)           # set seed to 0 so the results are always the same
+np.random.seed()           # set seed to 0 so the results are always the same
 
-def dot_product(a, b):
-    x = 0
-    for i in range(len(a)):
-        x += a[i] * b[i]
-    return x
-
-def dot_product2d(a, b):
-    arr = [ dot_product(a[i], b) for i in range(len(a)) ]
-    return arr
-  
 # fetch dataset 
 iris = fetch_ucirepo(id=53) 
-  
-data_offset = 120               #80% of 150 is 120 for training, and the remaining 30 for testing
+
 X = np.array(iris.data.features)
 y = np.array(iris.data.targets)
+
+# apply min-max normalisation before any processing
+X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))       
+
+# encode the labels to one hot encoded, which we need for comparison with output of neural network
+y = N.one_hot_encode(y)             
+
+# for x_data, y_data in enumerate(zip(X,y)):
+#     print(x_data, y_data)
 
 indices = np.arange(X.shape[0])
 
@@ -31,60 +30,20 @@ train_samples = int(train_size * X.shape[0])
 train_indices = indices[:train_samples]
 test_indices = indices[train_samples:]
 # data (as pandas dataframes) 
-X_train, X_test = X[train_indices], X[test_indices]
-y_train, y_test = y[train_indices], y[test_indices]
+X_train, y_train = X[train_indices], X[test_indices]
+x_labels, y_labels = y[train_indices], y[test_indices]
 
+# for y_data, label in enumerate(zip(y_train, y_labels)):
+#     print(y_data, label)
 
+# initialiseren van de layers 
+dense1 = N.Hidden_Layer_Dense(4, X_train.shape[1])              # 4 neurons with 4 weights, this is the hidden layer
+dense2 = N.Output_Layer_Dense(y_labels.shape[1], 4)             # 3 neurons with 4 weights, 3 neurons is required, because 3 classes possible
+my_model = Model(X_train[0], dense1, dense2)
 
-
-dense1 = N.Layer_Dense(4, 4)            # create a layer with the 4 neurons and 4 inputs being petal length, width & sepal length, width 
-activation1 = N.Activation_ReLU()       
-dense2 = N.Layer_Dense(4, 3)            # hidden layer met 3 neurons
-activation2 = N.Activation_ReLU()
-dense3 = N.Layer_Dense(3, 3)            # laatse laag met 3 neurons voor de output layer voor iris-virginica, iris-versicolor en iris-setosa
-activaton3 = N.Activation_Softmax()
-
-loss_activation = N.Loss_CategoricalCrossEntropy()
-
-# hou de beste weights en biases bij
-lowest_loss = 999999                            # een initiele waarde
-best_dense1_weights = dense1.weights.copy()
-best_dense1_biases = dense1.biases.copy()
-best_dense2_weights = dense2.weights.copy()
-best_dense2_biases = dense2.biases.copy()
-best_dense3_weights = dense3.weights.copy()
-best_dense3_biases = dense3.biases.copy()
-
-
-dense1.forward(X_train)
-activation1.forward(dense1.output)
-dense2.forward(activation1.output)
-activation2.forward(dense2.output)
-dense3.forward(activation2.output)
-
-loss = loss_activation.forward(dense3.output, y_train)
-
-print(loss_activation.output[:5])
-print('loss: ', loss)
-
-predictions = np.argmax(loss_activation.output, axis=1)
-if len(y_train.shape) == 2:
-    y_train = np.argmax(y_train, axis=1)
-accuracy = np.mean(predictions==y_train)
-
-print('acc: ', accuracy)
-
-loss_activation.backward(loss_activation.output, y_train)
-dense3.backward(loss_activation.dinputs)
-activation2.backward(dense3.dinputs)
-dense2.backward(activation2.dinputs)
-activation1.backward(dense2.dinputs)
-dense1.backward(activation1.dinputs)
-
-print(dense1.weights)
-print(dense1.biases)
-print(dense2.weights)
-print(dense2.biases)
-print(dense3.weights)
-print(dense3.biases)
-
+# start training the network
+my_model.fit(X_train, x_labels, epochs=200, lr=0.1)
+predictions = my_model.predict(y_train)
+print(predictions)
+acc = my_model.evaluate(predictions, y_labels)
+print(f"accuracy: {acc:.2f}%, with learning rate: {my_model.lr} and epochs: {my_model.epochs}.")

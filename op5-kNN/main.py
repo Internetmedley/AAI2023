@@ -130,9 +130,11 @@ def main():
             y_labels.append('herfst')
         else: # from 01-12 to end of year
             y_labels.append('winter')
-    
-    X_train = (X_train - X_train.min(axis=0)) / (X_train.max(axis=0) - X_train.min(axis=0))
-    y_train = (y_train - y_train.min(axis=0)) / (y_train.max(axis=0) - y_train.min(axis=0))
+   
+    high = np.array([X_train.max(axis=0),y_train.max(axis=0)]).max(axis=0)          # normalisation now better taking the highs and lows of 
+    low = np.array([X_train.min(axis=0),y_train.min(axis=0)]).min(axis=0)           # both X and y
+    X_train = (X_train - low / (high - low))
+    y_train = (y_train - low / (high - low))
 
     X_distances = [ calculate_distances(y, X_train, x_labels) for y in y_train]
     epochs = int(len(X_train)/3)
